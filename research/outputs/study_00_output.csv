@@ -1,0 +1,9 @@
+check,passed,detail
+Required columns present,True,All present
+No duplicate trades,True,0 duplicates
+Exactly Top-5 per snapshot,True,All snapshots have 5 stocks
+Sequential ranks per snapshot,True,All ranks sequential
+No null returns or alpha,True,0 nulls
+alpha == stock_return - nifty_return,True,Consistent (max diff=0.0001)
+Weekly snapshot spacing,False,13 irregular gaps (min=7d max=1029d)
+Engine vs dump snapshot count,True,Engine=179 Dump=179 (OK)

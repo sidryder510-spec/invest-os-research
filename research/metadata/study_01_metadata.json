@@ -1,0 +1,42 @@
+{
+  "study": "01",
+  "study_name": "Eligibility Audit",
+  "study_version": "1.0.0",
+  "protocol_version": "1.1",
+  "config_version": "1.2.0",
+  "engine_version": "3.0.0",
+  "engine_sha256": "032aa2c0bd77bac17b1e98437ee8e11c0b3b155278f0e2f024f09466fc87f27b",
+  "execution_date": "2026-10-26",
+  "execution_time": "09:40:04",
+  "runtime_seconds": 5.23,
+  "python_version": "3.12.15",
+  "pandas_version": "3.1.0",
+  "numpy_version": "2.5.4",
+  "yfinance_version": "1.7.0",
+  "verdict": "PASS",
+  "acceptance_tests": {
+    "CSV exported": true,
+    "Row count > 0": true,
+    "No duplicate snapshot/symbol rows": true,
+    "Consistent symbol count per snapshot": true,
+    "selected_rank in [1,5] or NA": true,
+    "was_selected and selected_rank consistent": true,
+    "Required columns present": true
+  },
+  "artifacts": [
+    "research/outputs/study_01_output.csv",
+    "research/reports/study_01_report.md",
+    "research/metadata/study_01_metadata.json"
+  ],
+  "summary": {
+    "total_snapshots": "179",
+    "total_observations": "89321",
+    "eligible_observations": "65161",
+    "ineligible_observations": "24160",
+    "total_selections": "895",
+    "violations": "0",
+    "first_eligible": "{'ADANIENSOL': '2016-08-24', 'ADANIENT': '2012-10-04', 'ADANIGREEN': '2020-11-17', 'AJANTPHARM': '2012-10-04', 'ANANDRATHI': '2023-07-04', 'ANANTRAJ': '2012-10-04', 'APARINDS': '2012-10-04', 'APLAPOLLO': '2013-01-07', 'ASTRAL': '2012-10-04', 'ATGL': '2020-11-17', 'ATUL': '2012-10-04', 'AUROPHARMA': '2012-10-04', 'AVANTIFEED': '2012-10-04', 'BAJFINANCE': '2012-10-04', 'BALRAMCHIN': '2012-10-04', 'BBOX': '2012-10-04', 'BEML': '2012-10-04', 'BSE': '2020-11-17', 'BSOFT': '2012-10-04', 'CEATLTD': '2012-10-04', 'CGPOWER': '2012-10-04', 'CIEINDIA': '2012-10-04', 'COCHINSHIP': '2020-11-17', 'CUPID': '2017-11-03', 'DIXON': '2020-11-17', 'ELECON': '2012-10-04', 'ESCORTS': '2012-10-04', 'FACT': '2012-10-04', 'FINCABLES': '2012-10-04', 'FORCEMOT': '2020-11-17', 'GALLANTT': '2012-10-04', 'GODFRYPHLP': '2012-10-04', 'GPIL': '2012-10-04', 'GRANULES': '2012-10-04', 'GRAPHITE': '2012-10-04', 'GRAVITA': '2012-10-04', 'GVT&D': '2012-10-04', 'HBLENGINE': '2012-10-04', 'HEGAM': '2012-10-04', 'HINDALCO': '2012-10-04', 'HSCL': '2012-10-04', 'HUDCO': '2020-11-17', 'IDEA': '2012-10-04', 'IFCI': '2012-10-04', 'INDIAMART': '2020-11-17', 'INDIANB': '2012-10-04', 'INOXWIND': '2016-07-25', 'INTELLECT': '2016-07-25', 'IRFC': '2023-07-04', 'ITI': '2012-10-04', 'JBMA': '2012-10-04', 'JINDALSAW': '2012-10-04', 'JKCEMENT': '2012-10-04', 'JSL': '2012-10-04', 'JSWENERGY': '2012-10-04', 'JWL': '2012-10-04', 'KEC': '2012-10-04', 'KEI': '2012-10-04', 'KIRLOSENG': '2012-10-04', 'LAURUSLABS': '2017-12-22', 'MANAPPURAM': '2012-10-04', 'MAZDOCK': '2021-10-22', 'MOTILALOFS': '2012-10-04', 'MUTHOOTFIN': '2012-10-04', 'NAVINFLUOR': '2012-10-04', 'NBCC': '2014-03-11', 'NEULANDLAB': '2012-10-04', 'OLECTRA': '2012-10-04', 'PATANJALI': '2012-10-04', 'PCBL': '2012-10-04', 'PGEL': '2012-10-11', 'POONAWALLA': '2012-10-04', 'PRIVISCL': '2016-07-25', 'RVNL': '2020-11-17', 'SRF': '2012-10-04', 'SUZLON': '2012-10-04', 'TARIL': '2012-10-04', 'TATAELXSI': '2012-10-04', 'TATAINVEST': '2012-10-04', 'TEJASNET': '2020-11-17', 'TITAGARH': '2012-10-04', 'TTML': '2012-10-04', 'TVSMOTOR': '2012-10-04', 'UNITDSPR': '2012-10-04', 'UNOMINDA': '2012-10-04', 'VEDL': '2012-10-04', 'WELSPUNLIV': '2012-10-04', 'WOCKPHARMA': '2012-10-04', 'ZENTEC': '2016-07-25'}",
+    "viol_per_sym": "{'ADANIENSOL': 0, 'ADANIENT': 0, 'ADANIGREEN': 0, 'AJANTPHARM': 0, 'ANANDRATHI': 0, 'ANANTRAJ': 0, 'APARINDS': 0, 'APLAPOLLO': 0, 'ASTRAL': 0, 'ATGL': 0, 'ATUL': 0, 'AUROPHARMA': 0, 'AVANTIFEED': 0, 'BAJFINANCE': 0, 'BALRAMCHIN': 0, 'BBOX': 0, 'BEML': 0, 'BSE': 0, 'BSOFT': 0, 'CEATLTD': 0, 'CGPOWER': 0, 'CIEINDIA': 0, 'COCHINSHIP': 0, 'CUPID': 0, 'DIXON': 0, 'ELECON': 0, 'ESCORTS': 0, 'FACT': 0, 'FINCABLES': 0, 'FORCEMOT': 0, 'GALLANTT': 0, 'GODFRYPHLP': 0, 'GPIL': 0, 'GRANULES': 0, 'GRAPHITE': 0, 'GRAVITA': 0, 'GVT&D': 0, 'HBLENGINE': 0, 'HEGAM': 0, 'HINDALCO': 0, 'HSCL': 0, 'HUDCO': 0, 'IDEA': 0, 'IFCI': 0, 'INDIAMART': 0, 'INDIANB': 0, 'INOXWIND': 0, 'INTELLECT': 0, 'IRFC': 0, 'ITI': 0, 'JBMA': 0, 'JINDALSAW': 0, 'JKCEMENT': 0, 'JSL': 0, 'JSWENERGY': 0, 'JWL': 0, 'KEC': 0, 'KEI': 0, 'KIRLOSENG': 0, 'LAURUSLABS': 0, 'MANAPPURAM': 0, 'MAZDOCK': 0, 'MOTILALOFS': 0, 'MUTHOOTFIN': 0, 'NAVINFLUOR': 0, 'NBCC': 0, 'NEULANDLAB': 0, 'OLECTRA': 0, 'PATANJALI': 0, 'PCBL': 0, 'PGEL': 0, 'POONAWALLA': 0, 'PRIVISCL': 0, 'RVNL': 0, 'SRF': 0, 'SUZLON': 0, 'TARIL': 0, 'TATAELXSI': 0, 'TATAINVEST': 0, 'TEJASNET': 0, 'TITAGARH': 0, 'TTML': 0, 'TVSMOTOR': 0, 'UNITDSPR': 0, 'UNOMINDA': 0, 'VEDL': 0, 'WELSPUNLIV': 0, 'WOCKPHARMA': 0, 'ZENTEC': 0}",
+    "selected_symbols": "['ADANIENSOL', 'ADANIENT', 'ADANIGREEN', 'AJANTPHARM', 'ANANDRATHI', 'ANANTRAJ', 'APARINDS', 'APLAPOLLO', 'ASTRAL', 'ATGL', 'ATUL', 'AUROPHARMA', 'AVANTIFEED', 'BAJFINANCE', 'BALRAMCHIN', 'BBOX', 'BEML', 'BSE', 'BSOFT', 'CEATLTD', 'CGPOWER', 'CIEINDIA', 'COCHINSHIP', 'CUPID', 'DIXON', 'ELECON', 'ESCORTS', 'FACT', 'FINCABLES', 'FORCEMOT', 'GALLANTT', 'GODFRYPHLP', 'GPIL', 'GRANULES', 'GRAPHITE', 'GRAVITA', 'GVT&D', 'HBLENGINE', 'HEGAM', 'HINDALCO', 'HSCL', 'HUDCO', 'IDEA', 'IFCI', 'INDIAMART', 'INDIANB', 'INOXWIND', 'INTELLECT', 'IRFC', 'ITI', 'JBMA', 'JINDALSAW', 'JKCEMENT', 'JSL', 'JSWENERGY', 'JWL', 'KEC', 'KEI', 'KIRLOSENG', 'LAURUSLABS', 'MANAPPURAM', 'MAZDOCK', 'MOTILALOFS', 'MUTHOOTFIN', 'NAVINFLUOR', 'NBCC', 'NEULANDLAB', 'OLECTRA', 'PATANJALI', 'PCBL', 'PGEL', 'POONAWALLA', 'PRIVISCL', 'RVNL', 'SRF', 'SUZLON', 'TARIL', 'TATAELXSI', 'TATAINVEST', 'TEJASNET', 'TITAGARH', 'TTML', 'TVSMOTOR', 'UNITDSPR', 'UNOMINDA', 'VEDL', 'WELSPUNLIV', 'WOCKPHARMA', 'ZENTEC']"
+  }
+}

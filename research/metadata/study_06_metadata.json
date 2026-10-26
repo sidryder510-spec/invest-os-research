@@ -1,0 +1,37 @@
+{
+  "study": "06",
+  "study_name": "Walk-Forward Validation",
+  "study_version": "1.0.0",
+  "protocol_version": "1.1",
+  "config_version": "1.2.0",
+  "engine_version": "3.0.0",
+  "engine_sha256": "032aa2c0bd77bac17b1e98437ee8e11c0b3b155278f0e2f024f09466fc87f27b",
+  "execution_date": "2026-10-26",
+  "execution_time": "09:40:10",
+  "runtime_seconds": 0.26,
+  "python_version": "3.12.15",
+  "pandas_version": "3.1.0",
+  "numpy_version": "2.5.4",
+  "yfinance_version": "1.7.0",
+  "verdict": "PASS",
+  "acceptance_tests": {
+    "Required columns present": true,
+    "No duplicate trades": true,
+    "No null returns or alpha": true,
+    "No unparseable dates": true,
+    "Row count > 0": true
+  },
+  "artifacts": [
+    "research/outputs/study_06_output.csv",
+    "research/reports/study_06_report.md",
+    "research/metadata/study_06_metadata.json"
+  ],
+  "summary": {
+    "test_windows": "10",
+    "windows_with_data": "8",
+    "positive_windows": "7",
+    "mean_oos_net_alpha": "13.629",
+    "worst_window": "2018",
+    "worst_window_net_alpha": "-7.87"
+  }
+}

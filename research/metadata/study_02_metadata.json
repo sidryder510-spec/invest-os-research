@@ -1,0 +1,44 @@
+{
+  "study": "02",
+  "study_name": "Selection Concentration",
+  "study_version": "1.0.0",
+  "protocol_version": "1.1",
+  "config_version": "1.2.0",
+  "engine_version": "3.0.0",
+  "engine_sha256": "032aa2c0bd77bac17b1e98437ee8e11c0b3b155278f0e2f024f09466fc87f27b",
+  "execution_date": "2026-10-26",
+  "execution_time": "09:40:09",
+  "runtime_seconds": 0.24,
+  "python_version": "3.12.15",
+  "pandas_version": "3.1.0",
+  "numpy_version": "2.5.4",
+  "yfinance_version": "1.7.0",
+  "verdict": "PASS",
+  "acceptance_tests": {
+    "Required columns present": true,
+    "No duplicate trades": true,
+    "Row count > 0": true
+  },
+  "artifacts": [
+    "research/outputs/study_02_output.csv",
+    "research/reports/study_02_report.md",
+    "research/metadata/study_02_metadata.json"
+  ],
+  "summary": {
+    "total_selections": "895",
+    "unique_symbols": "89",
+    "hhi": "204.4",
+    "gini": "0.481",
+    "top1_symbol": "AVANTIFEED",
+    "top1_share_pct": "4.36",
+    "mean_alpha_all": "19.101",
+    "mean_alpha_without_top1": "18.421",
+    "watch_share_pct": "0.0",
+    "mean_alpha_without_watch": "19.101",
+    "max_possible_share_pct": "20.0",
+    "top1_weeks_present_pct": "21.79",
+    "top1_alpha_contribution_pct": "7.76",
+    "watch_weeks_present_pct": "0.0",
+    "watch_alpha_contribution_pct": "0.0"
+  }
+}

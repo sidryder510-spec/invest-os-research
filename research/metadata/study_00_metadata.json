@@ -1,0 +1,40 @@
+{
+  "study": "00",
+  "study_name": "Engine Validation",
+  "study_version": "1.0.0",
+  "protocol_version": "1.1",
+  "config_version": "1.2.0",
+  "engine_version": "3.0.0",
+  "engine_sha256": "032aa2c0bd77bac17b1e98437ee8e11c0b3b155278f0e2f024f09466fc87f27b",
+  "execution_date": "2026-10-26",
+  "execution_time": "09:40:02",
+  "runtime_seconds": 1.17,
+  "python_version": "3.12.15",
+  "pandas_version": "3.1.0",
+  "numpy_version": "2.5.4",
+  "yfinance_version": "1.7.0",
+  "verdict": "CONDITIONAL",
+  "acceptance_tests": {
+    "Required columns present": true,
+    "No duplicate trades": true,
+    "Exactly Top-5 per snapshot": true,
+    "Sequential ranks per snapshot": true,
+    "No null returns or alpha": true,
+    "alpha == stock_return - nifty_return": true,
+    "Weekly snapshot spacing": false,
+    "Engine vs dump snapshot count": true
+  },
+  "artifacts": [
+    "research/outputs/study_00_output.csv",
+    "research/reports/study_00_report.md",
+    "research/metadata/study_00_metadata.json"
+  ],
+  "summary": {
+    "total_checks": "8",
+    "checks_passed": "7",
+    "checks_failed": "1",
+    "engine_snapshots": "179",
+    "dump_snapshots": "179",
+    "total_trades": "895"
+  }
+}

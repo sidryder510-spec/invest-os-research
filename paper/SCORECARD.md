@@ -8,7 +8,7 @@ Rule (locked 2026-10-26): mean net alpha > 2.0% per 60 days and > 55.0% of trade
 | --- | --- |
 | Latest run | 2026-10-26 |
 | Latest breadth | 31.4% (trades only at >= 80.0%) |
-| Latest picks | none, in cash |
+| Latest picks | nan |
 | Weeks run / weeks traded | 1 / 0 |
 | Pending / open / closed trades | 0 / 0 / 0 |
 | Mean net alpha per 60 days | - |

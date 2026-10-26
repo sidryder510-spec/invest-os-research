@@ -86,6 +86,16 @@ class Verdicts(unittest.TestCase):
         self.assertEqual(s06.determine_verdict(sparse), "CONDITIONAL")  # 6 of 10 positive
 
 
+class Study00(unittest.TestCase):
+    def test_study00_noncritical_failure_is_conditional_not_fatal(self):
+        import study_00_engine_validation as s00
+        checks = {k: {"passed": True, "detail": ""} for k in s00.CRITICAL_CHECKS}
+        checks["Weekly snapshot spacing"] = {"passed": False, "detail": "breadth gaps"}
+        self.assertEqual(s00.determine_verdict(checks), "CONDITIONAL")
+        checks["No duplicate trades"] = {"passed": False, "detail": "dupes"}
+        self.assertEqual(s00.determine_verdict(checks), "FAIL")
+
+
 class EndToEnd(unittest.TestCase):
     """Run each study's main() the way you would, in a temp folder."""
 

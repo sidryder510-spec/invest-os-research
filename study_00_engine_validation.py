@@ -312,7 +312,8 @@ def main():
 
     # Acceptance tests
     acceptance = {k: (v["passed"], v["detail"]) for k, v in checks.items()}
-    ru.run_acceptance_tests(acceptance)
+    # Only critical checks halt; the others feed the CONDITIONAL verdict, as the criteria define.
+    ru.run_acceptance_tests({k: acceptance[k] for k in CRITICAL_CHECKS})
 
     n_passed = sum(1 for v in checks.values() if v["passed"])
     n_failed = len(checks) - n_passed

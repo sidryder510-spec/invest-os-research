@@ -6,7 +6,7 @@
 # Every study imports from here. Nothing is hardcoded in study files.
 #
 # Protocol Version : Invest OS Research Protocol v1.1
-# Config Version   : 1.3.0
+# Config Version   : 1.4.0
 #
 # HOW TO UPDATE:
 #   If the engine changes (bug fix), update ENGINE_SHA256 and ENGINE_VERSION.
@@ -20,7 +20,7 @@ from pathlib import Path
 # Version identifiers
 # ---------------------------------------------------------------------------
 
-CONFIG_VERSION   = "1.3.0"   # 1.3.0: paper-trading rule; 1.2.0: engine v3; 1.1.0: Study 05 cost model corrected (thresholds unchanged)
+CONFIG_VERSION   = "1.4.0"   # 1.4.0: extended tests pre-registered; 1.3.0: paper-trading rule; 1.2.0: engine v3; 1.1.0: Study 05 cost model corrected (thresholds unchanged)
 PROTOCOL_VERSION = "1.1"
 ENGINE_VERSION   = "3.0.0"   # v2 engine lost; v3 rebuilt with a pre-locked 12-1 momentum score
 
@@ -159,3 +159,35 @@ REQUIRED_ENGINE_API = [
 
 PAPER_MIN_CLOSED_WEEKS = 26
 PAPER_DIR              = Path("paper")
+
+# ---------------------------------------------------------------------------
+# Extended tests (pre-registered 2026-10-26, before any of them was run)
+#
+# 1. Random-monkey test: on the same snapshots, MONKEY_RUNS portfolios of
+#    TOP_N random eligible stocks (seed MONKEY_SEED). PASS if momentum's mean
+#    gross alpha beats at least (1 - MONKEY_P_PASS) of them.
+# 2. Robustness: lookbacks 6-1, 9-1, 12-1 months, each with and without the
+#    breadth filter (6 variants). Measure: selection edge = picks minus the
+#    equal-weight average of eligible stocks. PASS if >= ROBUST_PASS_COUNT
+#    variants are positive, FAIL if <= ROBUST_FAIL_COUNT, else CONDITIONAL.
+#    12-1 stays the strategy whatever this shows; nothing is re-chosen.
+# 3. Point-in-time backtest: NSE bhavcopy (every listed stock, delisted ones
+#    included; EQ/BE/BZ series). Universe on each date = PIT_UNIVERSE_SIZE
+#    stocks with the highest average daily traded value over the previous
+#    PIT_VALUE_DAYS trading days. Prices chained from CLOSE / PREVCLOSE (NSE
+#    adjusts PREVCLOSE for corporate actions). Same engine rules otherwise.
+#    PASS if mean net alpha > S05_NET_ALPHA_PASS, net win rate >
+#    S05_WIN_RATE_PASS, non-overlapping t-stat >= PIT_T_PASS and the monkey
+#    test on this data passes. Otherwise FAIL.
+# ---------------------------------------------------------------------------
+
+MONKEY_RUNS        = 1000
+MONKEY_SEED        = 2026
+MONKEY_P_PASS      = 0.05
+ROBUST_LOOKBACKS   = {"6-1": 126, "9-1": 189, "12-1": 252}
+ROBUST_PASS_COUNT  = 5
+ROBUST_FAIL_COUNT  = 3
+PIT_UNIVERSE_SIZE  = 500
+PIT_VALUE_DAYS     = 126
+PIT_START          = "2010-01-01"
+PIT_T_PASS         = 2.0

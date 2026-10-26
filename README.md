@@ -33,3 +33,8 @@ Run them in order (or let GitHub run everything: Actions tab -> research -> Run 
 - **Overlapping holds.** Weekly snapshots with 60-day holds overlap about 12 times. Study 05 reports a t-stat on non-overlapping periods; below about 2, the edge can't be told apart from luck.
 - **Survivorship.** Engine v3 uses today's Nifty 500 list for all past dates. Stocks that dropped out or were delisted are missing, which flatters every result. Point-in-time constituents are not freely available.
 - **Breadth filter.** The strategy trades only when at least 80% of the universe is above its 200-day average. Expect long stretches in cash.
+
+## Forward paper trading
+`paper_trade.py` runs every Monday after NSE close (`.github/workflows/paper.yml`). It records the week's Top-5 from **that week's** Nifty 500 list, so there's no survivorship bias, fills at the next day's close, and closes after 60 trading days, net of Zerodha charges. See `paper/SCORECARD.md`. The pass rule is locked in `research_config.py` 1.3.0: mean net alpha > 2% per 60 days and > 55% of trades beating NIFTY, over at least 26 closed weekly picks. Paper only: it never contacts a broker.
+
+Note: GitHub pauses scheduled workflows in a repo with no activity for 60 days. The weekly commit counts as activity, but if the scorecard stops updating, check the Actions tab.

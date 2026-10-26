@@ -6,7 +6,7 @@
 # Every study imports from here. Nothing is hardcoded in study files.
 #
 # Protocol Version : Invest OS Research Protocol v1.1
-# Config Version   : 1.2.0
+# Config Version   : 1.3.0
 #
 # HOW TO UPDATE:
 #   If the engine changes (bug fix), update ENGINE_SHA256 and ENGINE_VERSION.
@@ -20,7 +20,7 @@ from pathlib import Path
 # Version identifiers
 # ---------------------------------------------------------------------------
 
-CONFIG_VERSION   = "1.2.0"   # 1.2.0: engine v3; 1.1.0: Study 05 cost model corrected (thresholds unchanged)
+CONFIG_VERSION   = "1.3.0"   # 1.3.0: paper-trading rule; 1.2.0: engine v3; 1.1.0: Study 05 cost model corrected (thresholds unchanged)
 PROTOCOL_VERSION = "1.1"
 ENGINE_VERSION   = "3.0.0"   # v2 engine lost; v3 rebuilt with a pre-locked 12-1 momentum score
 
@@ -149,3 +149,13 @@ REQUIRED_ENGINE_API = [
     "get_snapshot_dates",
     "generate_historical_candidates",
 ]
+
+# ---------------------------------------------------------------------------
+# Forward paper trading (locked 2026-10-26, before the first live signal)
+# Verdict: PASS if mean net alpha > S05_NET_ALPHA_PASS and net win rate >
+# S05_WIN_RATE_PASS over at least PAPER_MIN_CLOSED_WEEKS closed weekly picks.
+# Until then the verdict is "TOO EARLY". Nothing here places a real order.
+# ---------------------------------------------------------------------------
+
+PAPER_MIN_CLOSED_WEEKS = 26
+PAPER_DIR              = Path("paper")

@@ -23,8 +23,8 @@ Measure alpha after Zerodha equity-delivery charges and slippage on every round 
 | numpy Version | 2.5.4 |
 | yfinance Version | 1.7.0 |
 | Execution Date | 2026-10-26 |
-| Execution Time | 09:40:10 |
-| Runtime | 0.2 seconds |
+| Execution Time | 09:48:38 |
+| Runtime | 0.3 seconds |
 
 ## Method
 Each trade is a Rs 100000 round trip. Charges: STT, exchange, SEBI, GST, stamp duty and DP via `nse_exec.rules.charges` with `S05_CHARGES`. Slippage: 0.1% (large cap) or 0.25% (mid cap) each way. A win means beating NIFTY after costs. The NIFTY leg carries no cost, which makes this slightly conservative. Tax is not included.

@@ -100,7 +100,7 @@ class Bhavcopy(unittest.TestCase):
 
 
 class CorporateActions(unittest.TestCase):
-    """PREVCLOSE left unadjusted: a 3:1 bonus is neutralised, a real 45% crash is kept."""
+    """PREVCLOSE left unadjusted: a 3:1 bonus on a +6% day is neutralised; a real -25% day is kept."""
     def test_bonus_neutralised_crash_kept(self):
         cwd = os.getcwd()
         os.chdir(tempfile.mkdtemp())
@@ -108,15 +108,15 @@ class CorporateActions(unittest.TestCase):
             pit.BHAV_DIR.mkdir(parents=True)
             dates = pd.bdate_range("2020-01-01", periods=10)
             for i, d in enumerate(dates):
-                bonus = 100.0 if i < 5 else 25.0                       # 3:1 bonus, prevclose NOT adjusted
-                crash = 100.0 if i < 5 else 55.0                       # real -45% crash
+                bonus = 100.0 if i < 5 else 26.5                       # 3:1 bonus on a +6% day, prevclose NOT adjusted
+                crash = 100.0 if i < 5 else 75.0                       # real -25% day
                 pd.DataFrame([("BONUS", bonus, 100.0 if i <= 5 else bonus, 1e9),
                               ("CRASH", crash, 100.0 if i <= 5 else crash, 1e9)],
                              columns=["symbol", "close", "prevclose", "value"]).to_csv(
                     pit.BHAV_DIR / (d.strftime("%Y%m%d") + ".csv"), index=False)
             px, exit_px, rows, member, breadth, big, n, n_ca = pit.panels(list(dates))
             self.assertAlmostEqual(px["BONUS"].iloc[-1], px["BONUS"].iloc[0])
-            self.assertAlmostEqual(px["CRASH"].iloc[-1] / px["CRASH"].iloc[0], 0.55)
+            self.assertAlmostEqual(px["CRASH"].iloc[-1] / px["CRASH"].iloc[0], 0.75)
             self.assertEqual(n_ca, 1)
         finally:
             os.chdir(cwd)

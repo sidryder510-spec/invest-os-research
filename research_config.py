@@ -6,7 +6,7 @@
 # Every study imports from here. Nothing is hardcoded in study files.
 #
 # Protocol Version : Invest OS Research Protocol v1.1
-# Config Version   : 1.4.1
+# Config Version   : 1.4.2
 #
 # HOW TO UPDATE:
 #   If the engine changes (bug fix), update ENGINE_SHA256 and ENGINE_VERSION.
@@ -20,7 +20,7 @@ from pathlib import Path
 # Version identifiers
 # ---------------------------------------------------------------------------
 
-CONFIG_VERSION   = "1.4.1"   # 1.4.1: PIT corporate-action fix (after first run); 1.4.0: extended tests pre-registered; 1.3.0: paper-trading rule; 1.2.0: engine v3; 1.1.0: Study 05 cost model corrected (thresholds unchanged)
+CONFIG_VERSION   = "1.4.2"   # 1.4.2: any >35% day neutralised; 1.4.1: PIT corporate-action fix (after first run); 1.4.0: extended tests pre-registered; 1.3.0: paper-trading rule; 1.2.0: engine v3; 1.1.0: Study 05 cost model corrected (thresholds unchanged)
 PROTOCOL_VERSION = "1.1"
 ENGINE_VERSION   = "3.0.0"   # v2 engine lost; v3 rebuilt with a pre-locked 12-1 momentum score
 
@@ -197,6 +197,13 @@ PIT_T_PASS         = 2.0
 # showed as -77%; 2,463 daily moves beyond 40%). A daily move beyond
 # PIT_CA_MIN_MOVE whose price ratio is within PIT_CA_TOL of a standard
 # split/bonus ratio is treated as a corporate action (0% that day).
-PIT_CA_RATIOS   = [1/2, 1/3, 1/4, 1/5, 1/10, 2/3, 2/5]
-PIT_CA_MIN_MOVE = 0.30
-PIT_CA_TOL      = 0.04
+#
+# Amendment 1.4.2 (after the second run; pass rules unchanged): the ratio match
+# missed bonuses/splits on days the stock also moved (INOXWIND -77%, PCJEWELLER
+# -90%, GPIL -80% remained; 1,511 moves beyond 40% left). EQ-series stocks are
+# capped at 20% a day and F&O stocks almost never move 35%, so ANY daily move
+# beyond PIT_MAX_DAILY_MOVE is treated as a corporate action or data error (0%
+# that day). Cost: a rare real crash beyond 35% (e.g. Yes Bank, Mar 2020) is
+# erased too. Owner-facing commitment: the next run's result is the verdict; no
+# further data amendments without a specific, evidenced error.
+PIT_MAX_DAILY_MOVE = 0.35

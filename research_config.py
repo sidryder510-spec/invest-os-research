@@ -6,7 +6,7 @@
 # Every study imports from here. Nothing is hardcoded in study files.
 #
 # Protocol Version : Invest OS Research Protocol v1.1
-# Config Version   : 1.4.0
+# Config Version   : 1.4.1
 #
 # HOW TO UPDATE:
 #   If the engine changes (bug fix), update ENGINE_SHA256 and ENGINE_VERSION.
@@ -20,7 +20,7 @@ from pathlib import Path
 # Version identifiers
 # ---------------------------------------------------------------------------
 
-CONFIG_VERSION   = "1.4.0"   # 1.4.0: extended tests pre-registered; 1.3.0: paper-trading rule; 1.2.0: engine v3; 1.1.0: Study 05 cost model corrected (thresholds unchanged)
+CONFIG_VERSION   = "1.4.1"   # 1.4.1: PIT corporate-action fix (after first run); 1.4.0: extended tests pre-registered; 1.3.0: paper-trading rule; 1.2.0: engine v3; 1.1.0: Study 05 cost model corrected (thresholds unchanged)
 PROTOCOL_VERSION = "1.1"
 ENGINE_VERSION   = "3.0.0"   # v2 engine lost; v3 rebuilt with a pre-locked 12-1 momentum score
 
@@ -191,3 +191,12 @@ PIT_UNIVERSE_SIZE  = 500
 PIT_VALUE_DAYS     = 126
 PIT_START          = "2010-01-01"
 PIT_T_PASS         = 2.0
+
+# Amendment 1.4.1 (2026-10-26, AFTER the first point-in-time run; pass rules unchanged):
+# NSE's PREVCLOSE is NOT always adjusted for splits/bonuses (INOXWIND 3:1 bonus
+# showed as -77%; 2,463 daily moves beyond 40%). A daily move beyond
+# PIT_CA_MIN_MOVE whose price ratio is within PIT_CA_TOL of a standard
+# split/bonus ratio is treated as a corporate action (0% that day).
+PIT_CA_RATIOS   = [1/2, 1/3, 1/4, 1/5, 1/10, 2/3, 2/5]
+PIT_CA_MIN_MOVE = 0.30
+PIT_CA_TOL      = 0.04

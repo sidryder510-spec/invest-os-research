@@ -99,6 +99,29 @@ class Bhavcopy(unittest.TestCase):
         self.assertIn("BhavCopy_NSE_CM_0_0_0_20240708", pit.urls(pd.Timestamp("2024-07-08"))[0])
 
 
+class CorporateActions(unittest.TestCase):
+    """PREVCLOSE left unadjusted: a 3:1 bonus is neutralised, a real 45% crash is kept."""
+    def test_bonus_neutralised_crash_kept(self):
+        cwd = os.getcwd()
+        os.chdir(tempfile.mkdtemp())
+        try:
+            pit.BHAV_DIR.mkdir(parents=True)
+            dates = pd.bdate_range("2020-01-01", periods=10)
+            for i, d in enumerate(dates):
+                bonus = 100.0 if i < 5 else 25.0                       # 3:1 bonus, prevclose NOT adjusted
+                crash = 100.0 if i < 5 else 55.0                       # real -45% crash
+                pd.DataFrame([("BONUS", bonus, 100.0 if i <= 5 else bonus, 1e9),
+                              ("CRASH", crash, 100.0 if i <= 5 else crash, 1e9)],
+                             columns=["symbol", "close", "prevclose", "value"]).to_csv(
+                    pit.BHAV_DIR / (d.strftime("%Y%m%d") + ".csv"), index=False)
+            px, exit_px, rows, member, breadth, big, n, n_ca = pit.panels(list(dates))
+            self.assertAlmostEqual(px["BONUS"].iloc[-1], px["BONUS"].iloc[0])
+            self.assertAlmostEqual(px["CRASH"].iloc[-1] / px["CRASH"].iloc[0], 0.55)
+            self.assertEqual(n_ca, 1)
+        finally:
+            os.chdir(cwd)
+
+
 class Panels(unittest.TestCase):
     def setUp(self):
         self.cwd = os.getcwd()
@@ -123,12 +146,12 @@ class Panels(unittest.TestCase):
         old = pit.PIT_UNIVERSE_SIZE
         pit.PIT_UNIVERSE_SIZE = 2
         try:
-            px, exit_px, rows, member, breadth, big, n = pit.panels(list(self.dates))
+            px, exit_px, rows, member, breadth, big, n, n_ca = pit.panels(list(self.dates))
         finally:
             pit.PIT_UNIVERSE_SIZE = old
         s = px["SPLIT"]
         self.assertAlmostEqual(s.iloc[150] / s.iloc[149], 1.001, places=6)   # no fake -50% day
-        self.assertEqual(big, 0)
+        self.assertEqual((big, n_ca), (0, 0))
         self.assertAlmostEqual(exit_px["GONE"].iloc[-1], exit_px["GONE"].iloc[199])
         self.assertTrue(np.isnan(px["GONE"].iloc[-1]))                        # not buyable after it stops
         self.assertTrue(np.isnan(px["LATE"].iloc[99]))

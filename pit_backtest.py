@@ -20,7 +20,7 @@ import pandas as pd
 
 import extended_tests as xt
 import study_05_transaction_costs as s05
-from research_config import (BREADTH_THRESHOLD, PIT_START, PIT_UNIVERSE_SIZE, PIT_VALUE_DAYS, PIT_T_PASS,
+from research_config import (BREADTH_THRESHOLD, PIT_CA_MIN_MOVE, PIT_CA_RATIOS, PIT_CA_TOL, PIT_START, PIT_UNIVERSE_SIZE, PIT_VALUE_DAYS, PIT_T_PASS,
                              S05_NET_ALPHA_PASS, S05_WIN_RATE_PASS, REPORTS_DIR)
 
 BHAV_DIR = Path("data/bhav")
@@ -102,6 +102,9 @@ def panels(dates):
     ret = close / prev - 1
     first = traded & ~traded.cummax().shift(fill_value=False)   # listing day: no previous close to chain from
     ret = ret.where(traded & ~first & (prev > 0)).fillna(0.0)
+    ratio = 1 + ret
+    ca = (ret.abs() > PIT_CA_MIN_MOVE) & np.logical_or.reduce([(ratio / r - 1).abs() < PIT_CA_TOL for r in PIT_CA_RATIOS])
+    ret = ret.mask(ca, 0.0)   # unadjusted split/bonus, not a real move (amendment 1.4.1)
     chain = (1 + ret).cumprod().where(traded.cummax())
     px = chain.where(traded).ffill(limit=5)
     exit_px = chain.where(traded).ffill()        # a stock that stops trading exits at its last price
@@ -112,7 +115,7 @@ def panels(dates):
     has = sma.notna() & px.notna() & member
     breadth = ((px > sma) & has).sum(axis=1) / has.sum(axis=1).replace(0, np.nan) * 100
     big_moves = int(((ret.abs() > 0.4) & traded).sum().sum())
-    return px, exit_px, rows, member, breadth, big_moves, int(traded.any().sum())
+    return px, exit_px, rows, member, breadth, big_moves, int(traded.any().sum()), int(ca.sum().sum())
 
 
 def verdict_for(picks, snaps, monkey_verdict):
@@ -135,7 +138,7 @@ def main():
     if pct > MAX_MISSING_PCT:
         raise SystemExit("[FATAL] %.1f%% of bhavcopy days missing (limit %s%%); NSE may be blocking this "
                          "machine. First missing: %s" % (pct, MAX_MISSING_PCT, [str(d.date()) for d in missing[:5]]))
-    px, exit_px, rows, member, breadth, big_moves, n_symbols = panels(dates)
+    px, exit_px, rows, member, breadth, big_moves, n_symbols, n_ca = panels(dates)
     nifty = nifty.reindex(dates)
     text, v, snaps, picks = xt.report("NSE bhavcopy, point-in-time universe (no survivorship bias)",
                                       px, exit_px, rows, breadth, nifty, member)
@@ -146,7 +149,8 @@ def main():
         "| | |", "| --- | --- |",
         "| Trading days / missing | %d / %d |" % (len(dates), len(missing)),
         "| Symbols ever seen (delisted included) | %d |" % n_symbols,
-        "| Daily moves beyond 40%% (should be rare if PREVCLOSE is adjusted) | %d |" % big_moves,
+        "| Unadjusted splits/bonuses neutralised (amendment 1.4.1) | %d |" % n_ca,
+        "| Daily moves beyond 40%% left after that | %d |" % big_moves,
         "| Snapshots traded (breadth >= %s%%) | %d |" % (BREADTH_THRESHOLD, len(snaps)),
         "| Trades | %d |" % len(picks),
         "| Mean net alpha per 60 days (after Zerodha costs) | %.2f%% (PASS > %s%%) |" % (net, S05_NET_ALPHA_PASS),

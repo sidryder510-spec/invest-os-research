@@ -29,6 +29,7 @@ class PaperTest(unittest.TestCase):
         self.pt.e = self.e
         self.stock, self.nifty, self.st = self.e.load_market_data()
         self.gen = lambda d: self.e.generate_historical_candidates(d, self.stock, self.nifty, rc.TOP_N)
+        self.alerts = []
 
     def tearDown(self):
         os.chdir(self.cwd)
@@ -37,8 +38,11 @@ class PaperTest(unittest.TestCase):
     def run_weeks(self, start, end, px=None):
         px = self.st["px"] if px is None else px
         for t in range(start, end, 5):   # cumulative breadth/score panels are causal, so slicing = running on that day
-            ledger, weekly = self.pt.step(self.nifty.index[:t + 1], px, self.st["exit_px"],
+            before = self.pt.read(self.pt.LEDGER, self.pt.COLS)
+            weekly = self.pt.read(self.pt.WEEKLY, self.pt.WEEKLY_COLS)
+            ledger, weekly = self.pt.step(before, weekly, self.nifty.index[:t + 1], px, self.st["exit_px"],
                                           self.st["breadth"], self.nifty["Close"], self.gen)
+            self.alerts.append(self.pt.alerts(before, ledger))
             rc.PAPER_DIR.mkdir(exist_ok=True)
             ledger.to_csv(self.pt.LEDGER, index=False)
             weekly.to_csv(self.pt.WEEKLY, index=False)
@@ -60,6 +64,9 @@ class PaperTest(unittest.TestCase):
             self.assertAlmostEqual(float(r["stock_return"]), (px[exit_] / px[entry] - 1) * 100, places=3)
             self.assertAlmostEqual(float(r["net_alpha"]),
                                    float(r["alpha"]) - float(r["cost_pct"]), places=3)
+        text = "\n".join(a for a in self.alerts if a)
+        self.assertEqual(text.count("BUY trigger"), weekly["traded"].eq("True").sum())
+        self.assertEqual(text.count("SELL trigger"), len(closed))
         # nothing closes early: open trades are all younger than the holding period
         for _, r in ledger[ledger["status"] == "OPEN"].iterrows():
             self.assertGreater(idx.get_loc(pd.Timestamp(r["entry_date"])) + rc.HOLDING_DAYS, n - 5)
@@ -71,6 +78,19 @@ class PaperTest(unittest.TestCase):
         px = self.st["px"].drop(columns=[held])
         ledger, _ = self.run_weeks(n - 145, n, px=px)
         self.assertFalse((ledger[ledger["symbol"] == held]["status"] == "CLOSED").any())
+
+    def test_uat_replay_fires_both_triggers(self):
+        n = len(self.nifty)
+        start, end = self.nifty.index[n - 500], self.nifty.index[n - 300]
+        self.pt.uat(str(start.date()), str(end.date()), Path("uat"))
+        led = pd.read_csv("uat/ledger.csv")
+        self.assertTrue((led["signal_date"] <= str(end.date())).all())     # no signals after the window
+        self.assertFalse(led["status"].isin(["PENDING", "OPEN"]).any())    # replay ran until all closed
+        log = Path("uat/trigger_log.md").read_text()
+        self.assertGreater(log.count("[UAT] BUY trigger"), 0)
+        self.assertEqual(log.count("[UAT] SELL trigger"), len(led))
+        self.assertIn("UAT finished", Path("paper/alert.md").read_text())
+        self.assertIn("functional test only", Path("uat/SCORECARD.md").read_text())
 
     def test_scorecard_rule(self):
         rows = lambda weeks, net: pd.DataFrame({

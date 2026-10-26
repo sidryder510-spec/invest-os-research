@@ -9,9 +9,15 @@ Each run:
   3. closes it HOLDING_DAYS trading days later, net of Zerodha charges.
 Prices are always re-read from today's adjusted series, so splits and
 dividends between entry and exit do not distort returns.
-Writes paper/ledger.csv, paper/weekly_log.csv and paper/SCORECARD.md.
+Writes paper/ledger.csv, paper/weekly_log.csv and paper/SCORECARD.md, plus
+paper/alert.md (not committed) when a buy or sell trigger fired this run.
+`python paper_trade.py --uat` replays 2023-2024 week by week into uat/ to
+show the triggers working (a functional test, not evidence of an edge).
 Nothing here talks to a broker.
 """
+import sys
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 
@@ -22,6 +28,7 @@ from research_config import (BREADTH_THRESHOLD, HOLDING_DAYS, TOP_N, PAPER_DIR, 
 
 LEDGER = PAPER_DIR / "ledger.csv"
 WEEKLY = PAPER_DIR / "weekly_log.csv"
+WEEKLY_COLS = ["signal_date", "breadth", "traded", "picks"]
 SCORECARD = PAPER_DIR / "SCORECARD.md"
 COLS = ["signal_date", "symbol", "rank", "score", "status", "entry_date", "exit_date",
         "stock_return", "nifty_return", "alpha", "cost_pct", "net_alpha"]
@@ -31,9 +38,9 @@ def read(path, cols):
     return pd.read_csv(path, dtype=str) if path.exists() else pd.DataFrame(columns=cols, dtype=str)
 
 
-def step(today_index, px, exit_px, breadth, nifty, gen):
-    """One weekly run against data that ends at today_index[-1]."""
-    ledger, weekly = read(LEDGER, COLS), read(WEEKLY, ["signal_date", "breadth", "traded", "picks"])
+def step(ledger, weekly, today_index, px, exit_px, breadth, nifty, gen, new_signals=True):
+    """One weekly run against data that ends at today_index[-1]. Returns updated copies."""
+    ledger, weekly = ledger.copy(), weekly.copy()
     idx = today_index
     pos = {d: i for i, d in enumerate(idx.strftime("%Y-%m-%d"))}
 
@@ -57,13 +64,29 @@ def step(today_index, px, exit_px, breadth, nifty, gen):
 
     today = idx[-1]
     key = today.strftime("%Y-%m-%d")
-    if key not in set(weekly["signal_date"]):
+    if new_signals and key not in set(weekly["signal_date"]):
         b = breadth.get(today, np.nan)
         picks = gen(today) if b >= BREADTH_THRESHOLD else []
         weekly.loc[len(weekly)] = [key, "%.1f" % b, str(bool(picks)), " ".join(p["symbol"] for p in picks)]
         for rank, p in enumerate(picks, 1):
             ledger.loc[len(ledger)] = [key, p["symbol"], str(rank), str(p["score"]), "PENDING"] + [""] * 7
     return ledger, weekly
+
+
+def alerts(before, after, tag=""):
+    """Plain-text BUY/SELL trigger messages for rows that changed in this run (empty if none)."""
+    lines = []
+    new = after.iloc[len(before):]
+    for d, g in new.groupby("signal_date"):
+        lines.append("%sBUY trigger %s: %s. Paper-buy at the next trading day's close; each sells %d trading days later."
+                     % (tag, d, ", ".join(g["symbol"]), HOLDING_DAYS))
+    old = before["status"].reindex(after.index)
+    closed = after[(after["status"] == "CLOSED") & (old != "CLOSED")]
+    for _, r in closed.iterrows():
+        lines.append("%sSELL trigger %s: %s (bought %s) %+.1f%%, NIFTY %+.1f%%, net vs NIFTY after costs %+.1f%%."
+                     % (tag, r["exit_date"], r["symbol"], r["entry_date"], float(r["stock_return"]),
+                        float(r["nifty_return"]), float(r["net_alpha"])))
+    return "\n".join(lines)
 
 
 def scorecard(ledger, weekly):
@@ -105,17 +128,59 @@ def with_held(px, exit_px, ledger, index):
     return px.join(extra.ffill(limit=5)), exit_px.join(extra.ffill())
 
 
-def main():
+def save(out, ledger, weekly, note=""):
+    out.mkdir(parents=True, exist_ok=True)
+    ledger.to_csv(out / LEDGER.name, index=False)
+    weekly.to_csv(out / WEEKLY.name, index=False)
+    verdict, text = scorecard(ledger, weekly)
+    (out / SCORECARD.name).write_text(note + text, encoding="utf-8")
+    return text
+
+
+def uat(start="2023-01-01", end="2024-12-31", out=Path("uat")):
+    """Replay weekly runs on past data: signals from start to end, then keep running until they all close."""
     stock_data, nifty_data, st = e.load_market_data()
     gen = lambda d: e.generate_historical_candidates(d, stock_data, nifty_data, TOP_N)
-    px, exit_px = with_held(st["px"], st["exit_px"], read(LEDGER, COLS), nifty_data.index)
-    ledger, weekly = step(nifty_data.index, px, exit_px, st["breadth"], nifty_data["Close"], gen)
+    idx, nifty = nifty_data.index, nifty_data["Close"]
+    ledger, weekly, log = pd.DataFrame(columns=COLS, dtype=str), pd.DataFrame(columns=WEEKLY_COLS, dtype=str), []
+    first = idx.searchsorted(pd.Timestamp(start))
+    for t in range(first, len(idx), 5):   # every 5th trading day, like the weekly job
+        signal = idx[t] <= pd.Timestamp(end)
+        if not signal and not ledger["status"].isin(["PENDING", "OPEN"]).any():
+            break
+        new_l, new_w = step(ledger, weekly, idx[:t + 1], st["px"], st["exit_px"], st["breadth"], nifty, gen, signal)
+        msg = alerts(ledger, new_l, "[UAT] ")
+        if msg:
+            log.append(msg)
+        ledger, weekly = new_l, new_w
+    note = ("> **UAT replay, functional test only.** Weekly runs replayed over %s to %s with the live code, each "
+            "seeing only data up to that Monday. Uses today's Nifty 500 list (survivorship-biased), so the numbers "
+            "are NOT evidence of an edge.\n\n" % (start, end))
+    text = save(out, ledger, weekly, note)
+    (out / "trigger_log.md").write_text("# UAT trigger log\n\n" + "\n\n".join(log) + "\n", encoding="utf-8")
+    buys = [l for m in log for l in m.splitlines() if "BUY" in l]
+    sells = [l for m in log for l in m.splitlines() if "SELL" in l]
     PAPER_DIR.mkdir(parents=True, exist_ok=True)
-    ledger.to_csv(LEDGER, index=False)
-    weekly.to_csv(WEEKLY, index=False)
-    verdict, text = scorecard(ledger, weekly)
-    SCORECARD.write_text(text, encoding="utf-8")
+    (PAPER_DIR / "alert.md").write_text(
+        "UAT finished: %d buy triggers and %d sell triggers fired. First of each:\n\n%s\n\n%s\n\n"
+        "Full log: uat/trigger_log.md. This is a test notification." % (
+            len(buys), len(sells), buys[0] if buys else "-", sells[0] if sells else "-"), encoding="utf-8")
     print(text)
+
+
+def main():
+    if "--uat" in sys.argv:
+        return uat()
+    stock_data, nifty_data, st = e.load_market_data()
+    gen = lambda d: e.generate_historical_candidates(d, stock_data, nifty_data, TOP_N)
+    before, weekly = read(LEDGER, COLS), read(WEEKLY, WEEKLY_COLS)
+    px, exit_px = with_held(st["px"], st["exit_px"], before, nifty_data.index)
+    ledger, weekly = step(before, weekly, nifty_data.index, px, exit_px, st["breadth"], nifty_data["Close"], gen)
+    print(save(PAPER_DIR, ledger, weekly))
+    msg = alerts(before, ledger)
+    if msg:
+        (PAPER_DIR / "alert.md").write_text(msg + "\n\nScorecard: paper/SCORECARD.md. Paper only.", encoding="utf-8")
+        print(msg)
 
 
 if __name__ == "__main__":

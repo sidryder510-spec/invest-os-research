@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: write
+  issues: write   # buy/sell alerts arrive as issues, which the GitHub app pushes to the phone
 
 concurrency: paper   # never two runs editing the ledger at once
 
@@ -26,10 +27,15 @@ jobs:
           curl -fsSL -A "Mozilla/5.0" https://niftyindices.com/IndexConstituent/ind_nifty500list.csv -o /tmp/u.csv \
             && grep -q Symbol /tmp/u.csv && mv /tmp/u.csv data/universe_nifty500.csv || echo "kept previous list"
       - run: python paper_trade.py
+      - name: Alert on buy/sell triggers
+        if: hashFiles('paper/alert.md') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue create --title "Paper trading trigger $(date -u +%F)" --body-file paper/alert.md
       - name: Commit ledger and scorecard
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898+github-actions[bot]@users.noreply.github.com"
           git add paper data/universe_nifty500.csv
           git commit -m "Paper trading run ${{ github.run_id }}" || exit 0
-          git push origin HEAD:${{ github.ref_name }}
+          git pull --rebase -q origin ${{ github.ref_name }} && git push origin HEAD:${{ github.ref_name }}

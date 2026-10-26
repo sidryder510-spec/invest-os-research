@@ -1,2 +1,3 @@
 __pycache__/
 data/market_cache.csv.gz
+paper/alert.md

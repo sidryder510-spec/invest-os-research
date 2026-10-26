@@ -116,3 +116,19 @@ class EngineTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class SurvivorshipCheck(EngineTest):
+    def test_parts_add_up(self):
+        shutil.copy(ROOT / "survivorship_check.py", self.tmp)
+        shutil.copy(ROOT / "research_config.py", self.tmp)
+        self.e.export_trade_dump("trade_dump.csv")
+        sys.path.insert(0, self.tmp)
+        try:
+            sys.modules.pop("survivorship_check", None)
+            sc = importlib.import_module("survivorship_check")
+            d = sc.decompose(pd.read_csv("trade_dump.csv"), self.st, self.nifty.index)
+            np.testing.assert_allclose(d["stocks"] - d["nifty"], d["universe_edge"] + d["selection_edge"], atol=1e-9)
+            self.assertTrue(d["universe"].notna().all())
+        finally:
+            sys.path.remove(self.tmp)

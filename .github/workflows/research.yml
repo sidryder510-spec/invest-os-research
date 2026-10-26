@@ -26,6 +26,8 @@ jobs:
           for s in 00_engine_validation 01_eligibility 02_concentration 05_transaction_costs 06_walk_forward; do
             python study_$s.py
           done
+      - name: Survivorship check (informational)
+        run: python survivorship_check.py
       - name: Commit results
         if: always()
         run: |

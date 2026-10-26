@@ -1,0 +1,38 @@
+# Extended tests pre-registered in research_config 1.4.0: random monkey + robustness on Yahoo data,
+# then the point-in-time backtest on NSE bhavcopy (every listed stock, delisted included).
+name: extended
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  extended:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pandas numpy yfinance
+      - name: Offline tests
+        run: python -m unittest discover tests
+      - name: Random monkey + robustness (Yahoo data)
+        run: python extended_tests.py
+      - uses: actions/cache@v4
+        with:
+          path: data/bhav
+          key: bhav-${{ github.run_id }}
+          restore-keys: bhav-
+      - name: Point-in-time backtest (downloads NSE bhavcopy, ~4,000 days)
+        run: python pit_backtest.py
+      - name: Commit reports
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898+github-actions[bot]@users.noreply.github.com"
+          git add -f research/reports research/outputs/pit_trades.csv 2>/dev/null || true
+          git commit -m "Extended test results from run ${{ github.run_id }}" || exit 0
+          git pull --rebase -q origin ${{ github.ref_name }} && git push origin HEAD:${{ github.ref_name }}

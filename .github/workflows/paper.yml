@@ -1,9 +1,10 @@
-# Forward paper trading: every Monday after NSE close, record this week's picks and close 60-day-old ones.
+# Forward paper trading, every weekday after NSE close: picks on the first trading day of each week,
+# and sells reported the same evening a position completes its 60 trading days.
 # Paper only; nothing talks to a broker. Also runnable by hand: Actions tab -> paper -> Run workflow.
 name: paper
 on:
   schedule:
-    - cron: "17 11 * * 1"   # Monday 16:47 IST
+    - cron: "17 11 * * 1-5"   # weekdays 16:47 IST
   workflow_dispatch:
 
 permissions:

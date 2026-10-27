@@ -128,6 +128,11 @@ def with_held(px, exit_px, ledger, index):
     return px.join(extra.ffill(limit=5)), exit_px.join(extra.ffill())
 
 
+def first_day_of_week(idx):
+    """True when the latest trading day opens a new ISO week, so a Monday holiday moves the signal to Tuesday."""
+    return len(idx) < 2 or idx[-1].isocalendar()[:2] != idx[-2].isocalendar()[:2]
+
+
 def save(out, ledger, weekly, note=""):
     out.mkdir(parents=True, exist_ok=True)
     ledger.to_csv(out / LEDGER.name, index=False)
@@ -175,7 +180,9 @@ def main():
     gen = lambda d: e.generate_historical_candidates(d, stock_data, nifty_data, TOP_N)
     before, weekly = read(LEDGER, COLS), read(WEEKLY, WEEKLY_COLS)
     px, exit_px = with_held(st["px"], st["exit_px"], before, nifty_data.index)
-    ledger, weekly = step(before, weekly, nifty_data.index, px, exit_px, st["breadth"], nifty_data["Close"], gen)
+    # Runs every weekday so sells are reported the evening they happen; new picks only once a week.
+    ledger, weekly = step(before, weekly, nifty_data.index, px, exit_px, st["breadth"], nifty_data["Close"], gen,
+                          new_signals=first_day_of_week(nifty_data.index))
     print(save(PAPER_DIR, ledger, weekly))
     msg = alerts(before, ledger)
     if msg:

@@ -92,6 +92,30 @@ class PaperTest(unittest.TestCase):
         self.assertIn("UAT finished", Path("paper/alert.md").read_text())
         self.assertIn("functional test only", Path("uat/SCORECARD.md").read_text())
 
+    def test_new_picks_only_on_first_trading_day_of_week(self):
+        d = pd.to_datetime(["2026-10-23", "2026-10-26", "2026-10-27"])            # Fri, Mon, Tue
+        self.assertTrue(self.pt.first_day_of_week(d[:2]))
+        self.assertFalse(self.pt.first_day_of_week(d))
+        holiday = pd.to_datetime(["2026-10-23", "2026-10-27"])                    # Monday closed
+        self.assertTrue(self.pt.first_day_of_week(holiday))
+
+    def test_daily_runs_report_sell_on_exit_day(self):
+        n = len(self.nifty)
+        self.run_weeks(n - 300, n - 299)                                          # one signal
+        led = pd.read_csv(self.pt.LEDGER)
+        if led.empty:
+            self.skipTest("no signal on that synthetic day")
+        i = self.nifty.index.get_loc(pd.Timestamp(led["signal_date"].iloc[0]))
+        exit_pos = i + 1 + rc.HOLDING_DAYS
+        before = self.pt.read(self.pt.LEDGER, self.pt.COLS)
+        weekly = self.pt.read(self.pt.WEEKLY, self.pt.WEEKLY_COLS)
+        for t in (exit_pos - 1, exit_pos):                                        # day before, then exit day
+            after, weekly = self.pt.step(before, weekly, self.nifty.index[:t + 1], self.st["px"], self.st["exit_px"],
+                                         self.st["breadth"], self.nifty["Close"], self.gen, new_signals=False)
+            msg = self.pt.alerts(before, after)
+            self.assertEqual("SELL trigger" in msg, t == exit_pos)
+            before = after
+
     def test_scorecard_rule(self):
         rows = lambda weeks, net: pd.DataFrame({
             "signal_date": ["2027-%02d-01" % (w % 12 + 1) + str(w) for w in range(weeks)],

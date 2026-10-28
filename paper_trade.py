@@ -35,7 +35,8 @@ COLS = ["signal_date", "symbol", "rank", "score", "status", "entry_date", "exit_
 
 
 def read(path, cols):
-    return pd.read_csv(path, dtype=str) if path.exists() else pd.DataFrame(columns=cols, dtype=str)
+    # keep_default_na: an empty field stays "" (e.g. no picks), not NaN, which would print as "nan"
+    return pd.read_csv(path, dtype=str, keep_default_na=False) if path.exists() else pd.DataFrame(columns=cols, dtype=str)
 
 
 def step(ledger, weekly, today_index, px, exit_px, breadth, nifty, gen, new_signals=True):
@@ -89,7 +90,7 @@ def alerts(before, after, tag=""):
     return "\n".join(lines)
 
 
-def scorecard(ledger, weekly):
+def scorecard(ledger, weekly, as_of=None, breadth_now=None):
     closed = ledger[ledger["status"] == "CLOSED"]
     net = closed["net_alpha"].astype(float)
     weeks = closed["signal_date"].nunique()
@@ -106,9 +107,10 @@ def scorecard(ledger, weekly):
         "Rule (locked 2026-10-26): mean net alpha > %s%% per 60 days and > %s%% of trades beating NIFTY after "
         "costs, over at least %d closed weekly picks." % (S05_NET_ALPHA_PASS, S05_WIN_RATE_PASS, PAPER_MIN_CLOSED_WEEKS), "",
         "| | |", "| --- | --- |",
-        "| Latest run | %s |" % (last["signal_date"] if last is not None else "-"),
-        "| Latest breadth | %s%% (trades only at >= %s%%) |" % (last["breadth"] if last is not None else "-", BREADTH_THRESHOLD),
-        "| Latest picks | %s |" % ((last["picks"] or "none, in cash") if last is not None else "-"),
+        "| Data as of | %s |" % (as_of or "-"),
+        "| Breadth now | %s (buys only at >= %s%%) |" % ("%.1f%%" % breadth_now if breadth_now == breadth_now and breadth_now is not None else "-", BREADTH_THRESHOLD),
+        "| Last weekly check | %s, breadth %s%% |" % ((last["signal_date"], last["breadth"]) if last is not None else ("-", "-")),
+        "| Last weekly picks | %s |" % ((last["picks"] or "none, in cash") if last is not None else "-"),
         "| Weeks run / weeks traded | %d / %d |" % (len(weekly), (weekly["traded"] == "True").sum()),
         "| Pending / open / closed trades | %d / %d / %d |" % tuple((ledger["status"] == s).sum() for s in ("PENDING", "OPEN", "CLOSED")),
         "| Mean net alpha per 60 days | %s |" % ("%.2f%%" % net.mean() if len(net) else "-"),
@@ -133,11 +135,11 @@ def first_day_of_week(idx):
     return len(idx) < 2 or idx[-1].isocalendar()[:2] != idx[-2].isocalendar()[:2]
 
 
-def save(out, ledger, weekly, note=""):
+def save(out, ledger, weekly, note="", as_of=None, breadth_now=None):
     out.mkdir(parents=True, exist_ok=True)
     ledger.to_csv(out / LEDGER.name, index=False)
     weekly.to_csv(out / WEEKLY.name, index=False)
-    verdict, text = scorecard(ledger, weekly)
+    verdict, text = scorecard(ledger, weekly, as_of, breadth_now)
     (out / SCORECARD.name).write_text(note + text, encoding="utf-8")
     return text
 
@@ -183,7 +185,9 @@ def main():
     # Runs every weekday so sells are reported the evening they happen; new picks only once a week.
     ledger, weekly = step(before, weekly, nifty_data.index, px, exit_px, st["breadth"], nifty_data["Close"], gen,
                           new_signals=first_day_of_week(nifty_data.index))
-    print(save(PAPER_DIR, ledger, weekly))
+    today = nifty_data.index[-1]
+    print(save(PAPER_DIR, ledger, weekly, as_of=today.strftime("%Y-%m-%d"),
+               breadth_now=float(st["breadth"].get(today, float("nan")))))
     msg = alerts(before, ledger)
     if msg:
         (PAPER_DIR / "alert.md").write_text(msg + "\n\nScorecard: paper/SCORECARD.md. Paper only.", encoding="utf-8")

@@ -116,6 +116,16 @@ class PaperTest(unittest.TestCase):
             self.assertEqual("SELL trigger" in msg, t == exit_pos)
             before = after
 
+    def test_scorecard_shows_cash_not_nan(self):
+        rc.PAPER_DIR.mkdir(exist_ok=True)
+        pd.DataFrame([["2026-10-26", "31.4", "False", ""]], columns=self.pt.WEEKLY_COLS).to_csv(self.pt.WEEKLY, index=False)
+        weekly = self.pt.read(self.pt.WEEKLY, self.pt.WEEKLY_COLS)
+        _, text = self.pt.scorecard(pd.DataFrame(columns=self.pt.COLS), weekly, "2026-10-28", 33.2)
+        self.assertNotIn("nan", text)
+        self.assertIn("none, in cash", text)
+        self.assertIn("| Data as of | 2026-10-28 |", text)
+        self.assertIn("33.2%", text)
+
     def test_scorecard_rule(self):
         rows = lambda weeks, net: pd.DataFrame({
             "signal_date": ["2027-%02d-01" % (w % 12 + 1) + str(w) for w in range(weeks)],

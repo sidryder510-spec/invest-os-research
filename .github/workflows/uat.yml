@@ -12,6 +12,9 @@ permissions:
 jobs:
   uat:
     runs-on: ubuntu-latest
+    env:
+      WA_PHONE: ${{ secrets.WHATSAPP_PHONE }}
+      WA_KEY: ${{ secrets.CALLMEBOT_APIKEY }}
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
@@ -21,6 +24,12 @@ jobs:
       - run: pip install pandas numpy yfinance
       - run: python -m unittest tests.test_paper_trade
       - run: python paper_trade.py --uat
+      - name: WhatsApp alert (CallMeBot; skipped until the two secrets are set)
+        if: hashFiles('paper/alert.md') != '' && env.WA_KEY != ''
+        run: >
+          curl -fsS -G https://api.callmebot.com/whatsapp.php
+          --data-urlencode "phone=$WA_PHONE" --data-urlencode "text@paper/alert.md" --data-urlencode "apikey=$WA_KEY"
+          -o /dev/null || echo "WhatsApp send failed; the GitHub issue alert still went out"
       - name: Test alert
         env:
           GH_TOKEN: ${{ github.token }}

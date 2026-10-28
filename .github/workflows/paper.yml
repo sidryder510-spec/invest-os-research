@@ -16,6 +16,9 @@ concurrency: paper   # never two runs editing the ledger at once
 jobs:
   paper:
     runs-on: ubuntu-latest
+    env:
+      WA_PHONE: ${{ secrets.WHATSAPP_PHONE }}
+      WA_KEY: ${{ secrets.CALLMEBOT_APIKEY }}
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
@@ -28,6 +31,12 @@ jobs:
           curl -fsSL -A "Mozilla/5.0" https://niftyindices.com/IndexConstituent/ind_nifty500list.csv -o /tmp/u.csv \
             && grep -q Symbol /tmp/u.csv && mv /tmp/u.csv data/universe_nifty500.csv || echo "kept previous list"
       - run: python paper_trade.py
+      - name: WhatsApp alert (CallMeBot; skipped until the two secrets are set)
+        if: hashFiles('paper/alert.md') != '' && env.WA_KEY != ''
+        run: >
+          curl -fsS -G https://api.callmebot.com/whatsapp.php
+          --data-urlencode "phone=$WA_PHONE" --data-urlencode "text@paper/alert.md" --data-urlencode "apikey=$WA_KEY"
+          -o /dev/null || echo "WhatsApp send failed; the GitHub issue alert still went out"
       - name: Alert on buy/sell triggers
         if: hashFiles('paper/alert.md') != ''
         env:

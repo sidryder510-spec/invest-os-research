@@ -1,6 +1,6 @@
 # CLAUDE.md: invest-os-research (public)
 
-Read `STATUS.md` first: it is the current truth about Invest OS.
+Read `STATUS.md` first: it is the current truth about Invest OS. Weekly autonomous work follows `pm/CHARTER.md` (standing owner approval up to the finish line, with hard limits) and `pm/BACKLOG.md`.
 
 ## Owner rule: keep the private Trading repo up to date (2026-10-28)
 This repo is where research and paper trading run (free Actions on a public repo). After **every** change here, in the same session, mirror it into `sidryder510-spec/Trading`:

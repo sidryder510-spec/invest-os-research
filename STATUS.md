@@ -23,5 +23,8 @@ This is the shared record between Claude Code and the owner's Claude chat. If an
 - Monte Carlo drawdown study (a "Study 07"): only if paper trading passes, as the last check before real money.
 - Savings meanwhile: Nifty index fund SIP.
 
+## Project manager
+A weekly PM session (charter `pm/CHARTER.md`, backlog `pm/BACKLOG.md`, log `pm/LOG.md`) works through the backlog with double-checked sub-agents and reports through a `PM weekly <date>` GitHub issue. It stops at the finish line: paper PASS plus a live setup that has been dry-run tested.
+
 ## Next decision point
 When `paper/SCORECARD.md` reaches 26 closed weekly picks. Expect months: the strategy is in cash while breadth < 80% (31.4% on 2026-10-26).

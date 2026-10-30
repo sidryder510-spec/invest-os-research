@@ -1,0 +1,34 @@
+# Turns each new PM report file (pm/outbox/<date>.md, first line = issue title) into a GitHub issue and,
+# once the CallMeBot secrets exist, a WhatsApp message. Lets the PM report even without GitHub API tools.
+name: pm-report
+on:
+  push:
+    branches: [main]
+    paths: ["pm/outbox/*.md"]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    env:
+      WA_PHONE: ${{ secrets.WHATSAPP_PHONE }}
+      WA_KEY: ${{ secrets.CALLMEBOT_APIKEY }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Post new reports
+        run: |
+          for f in $(git diff --name-only --diff-filter=A ${{ github.event.before }} ${{ github.sha }} -- 'pm/outbox/*.md' 2>/dev/null || ls pm/outbox/*.md); do
+            title=$(head -1 "$f" | sed 's/^# *//')
+            tail -n +2 "$f" > /tmp/body.md
+            gh issue create --title "$title" --body-file /tmp/body.md
+            if [ -n "$WA_KEY" ]; then
+              curl -fsS -G https://api.callmebot.com/whatsapp.php --data-urlencode "phone=$WA_PHONE" \
+                --data-urlencode "text@$f" --data-urlencode "apikey=$WA_KEY" -o /dev/null || echo "WhatsApp send failed"
+            fi
+          done

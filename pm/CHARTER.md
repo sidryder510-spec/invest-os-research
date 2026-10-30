@@ -30,9 +30,9 @@ At the finish line the PM **stops** and reports. The first real trade is always 
 2. Pick the top 1-3 unblocked backlog tasks and assign each to a sub-agent with its acceptance criteria.
 3. **Check 1:** a Reviewer agent reviews the result.
 4. **Check 2:** the PM itself re-runs `python -m unittest discover tests`, confirms every acceptance criterion with evidence (command output, file, run ID), and confirms no hard limit is touched.
-5. Both pass → open a PR, merge, and mirror into `Trading` per `CLAUDE.md`. Either fails → send it back with the specific findings (at most 2 retries per run), then leave it in the backlog with notes.
+5. Both pass → open a PR and merge it (if GitHub API tools are unavailable, merge the `claude/pm-*` branch into `main` locally with `--no-ff` and push), then mirror into `Trading` per `CLAUDE.md`. Either fails → send it back with the specific findings (at most 2 retries per run), then leave it in the backlog with notes.
 6. Update `pm/BACKLOG.md`, `pm/LOG.md` (run date, tasks, both checks, PRs, blockers) and `STATUS.md`.
-7. Report: open one GitHub issue titled `PM weekly <date>` with a 5-10 line plain-English digest (done, next, blockers needing the owner, paper scorecard line). For a milestone or a blocker that needs the owner, put `[ACTION]` at the start of the title.
+7. Report: write `pm/outbox/<YYYY-MM-DD>.md` (first line `# PM weekly <date>`, or `# [ACTION] ...`) and push it to main. The `pm-report` workflow turns it into a GitHub issue (and a WhatsApp message once the secrets exist). Direct issue creation through GitHub tools is fine too, but do one or the other, not both. The digest is a 5-10 line plain-English summary (done, next, blockers needing the owner, paper scorecard line). For a milestone or a blocker that needs the owner, put `[ACTION]` at the start of the title.
 
 ## Status labels
 Use only: CODE EXISTS / TESTED / INTEGRATION VERIFIED / END-TO-END DEMONSTRATED / PRODUCTION READY. Nothing above TESTED without run evidence.

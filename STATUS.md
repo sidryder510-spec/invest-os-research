@@ -1,6 +1,6 @@
 # Invest OS: current status (read this first)
 
-This is the shared record between Claude Code and the owner's Claude chat. If anything here disagrees with older chat summaries, this file wins. Last updated 2026-10-28 (WhatsApp alerts added).
+This is the shared record between Claude Code and the owner's Claude chat. If anything here disagrees with older chat summaries, this file wins. Last updated 2026-10-30 (PM cycle 1).
 
 ## Verdict
 **No real money.** The 12-1 momentum strategy **failed** its pre-registered point-in-time test. Forward paper trading is running to collect honest evidence.
@@ -14,7 +14,7 @@ This is the shared record between Claude Code and the owner's Claude chat. If an
 | Random-monkey + robustness + point-in-time backtest | `extended_tests.py`, `pit_backtest.py`, rules locked in config 1.4.0 | **Point-in-time: FAIL.** Net alpha +5.7% per 60d (needs > 2), win rate 54.0% (needs > 55), t-stat 1.69 (needs >= 2). Beats random picks (p < 0.001). Data amendments 1.4.1/1.4.2 (unadjusted splits/bonuses) are disclosed; no further data changes without an evidenced error. |
 | Forward paper trading | `paper_trade.py`, `.github/workflows/paper.yml`, `paper/SCORECARD.md` | Runs weekdays after NSE close. Picks on the first trading day of each week; sells reported the same evening. Buy/sell alerts arrive as GitHub issues, and on WhatsApp via CallMeBot once the owner adds the secrets WHATSAPP_PHONE and CALLMEBOT_APIKEY. Pass rule (config 1.3.0): > 2% net alpha and > 55% win rate over >= 26 closed weekly picks. |
 | UAT | `uat/`, `.github/workflows/uat.yml` | Passed 2026-10-26: 59 buy and 295 sell triggers replayed (2023-24), and the phone alert arrived. Functional test only. |
-| Order gate (sizing, sector/heat caps, two approvals, Kite) | private `Trading` repo, `nse_exec/` | Built and tested, never used live. |
+| Order gate (sizing, sector/heat caps, two approvals, Kite) | private `Trading` repo, `nse_exec/` | BUY and SELL (60-day exit) tickets, TESTED (32 tests), never used live. Go-live costs and steps: `GO_LIVE.md` in Trading (about Rs 380-450/month; nothing bought). |
 | Live app (engines A-E) | private `Trading` repo | **Never buys:** its buy functions are never called and the screener was never written. Its sells fire with no approval. Do not run live. |
 
 ## Decided, don't reopen without new evidence

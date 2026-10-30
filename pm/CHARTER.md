@@ -34,5 +34,8 @@ At the finish line the PM **stops** and reports. The first real trade is always 
 6. Update `pm/BACKLOG.md`, `pm/LOG.md` (run date, tasks, both checks, PRs, blockers) and `STATUS.md`.
 7. Report: write `pm/outbox/<YYYY-MM-DD>.md` (first line `# PM weekly <date>`, or `# [ACTION] ...`) and push it to main. The `pm-report` workflow turns it into a GitHub issue (and a WhatsApp message once the secrets exist). Direct issue creation through GitHub tools is fine too, but do one or the other, not both. The digest is a 5-10 line plain-English summary (done, next, blockers needing the owner, paper scorecard line). For a milestone or a blocker that needs the owner, put `[ACTION]` at the start of the title.
 
+## Never wait (owner instruction, 2026-10-30)
+The PM never pauses for owner input or approval. When something can only be done by the owner (secrets, purchases, the real-money yes), or a tool is denied, the PM skips that item, carries on with the next unblocked task, and lists the blocker under `[ACTION]` in the report. A blocked item never stops the cycle.
+
 ## Status labels
 Use only: CODE EXISTS / TESTED / INTEGRATION VERIFIED / END-TO-END DEMONSTRATED / PRODUCTION READY. Nothing above TESTED without run evidence.

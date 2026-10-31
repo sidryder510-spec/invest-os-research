@@ -1,5 +1,6 @@
 # Extended tests pre-registered in research_config 1.4.0: random monkey + robustness on Yahoo data,
-# then the point-in-time backtest on NSE bhavcopy (every listed stock, delisted included).
+# then the point-in-time backtest on NSE bhavcopy (every listed stock, delisted included),
+# then the stop-loss test pre-registered in research_config 1.5.0 on the same data.
 name: extended
 on:
   workflow_dispatch:
@@ -28,6 +29,8 @@ jobs:
           restore-keys: bhav-
       - name: Point-in-time backtest (downloads NSE bhavcopy, ~4,000 days)
         run: python pit_backtest.py
+      - name: Stop-loss test (config 1.5.0; reuses the bhavcopy above, no download)
+        run: python stop_test.py
       - name: Commit reports
         if: always()
         run: |

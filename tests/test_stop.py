@@ -12,6 +12,7 @@ import research_config as rc
 import extended_tests as xt
 import pit_backtest as pit
 import stop_test as st
+import study_05_transaction_costs as s05
 from test_engine_v3 import market
 
 H = rc.HOLDING_DAYS
@@ -35,6 +36,9 @@ class Mechanics(unittest.TestCase):
         self.assertAlmostEqual(out["stock_return"].iloc[0], (path[k + 1] / 100 - 1) * 100)
         self.assertLess(out["stock_return"].iloc[0], -20)
         self.assertGreater(out["stock_return"].iloc[0], -22)
+        self.assertAlmostEqual(out["cost_pct"].iloc[0],
+                               s05.round_trip_cost_pct("X", out["stock_return"].iloc[0]))   # charged on the stop exit
+        self.assertAlmostEqual(out["net_return"].iloc[0], out["stock_return"].iloc[0] - out["cost_pct"].iloc[0])
         base = st.apply_stop(picks, px, px, None)
         self.assertAlmostEqual(base["stock_return"].iloc[0], -40)
         self.assertFalse(base["stopped"].iloc[0])
@@ -50,6 +54,23 @@ class Mechanics(unittest.TestCase):
         changed[k + 2:] = 1.0                                   # rewrite everything after the exit day
         self.assertEqual(st.stop_return(changed, 0.20), (r, True))
         self.assertAlmostEqual(r, (path[k + 1] / 100 - 1) * 100)
+
+    def test_suspension_stale_prices_fire_only_if_already_below_the_stop(self):
+        for last, fires in ((85.0, False), (79.0, True)):
+            path = np.r_[np.full(5, 100.0), last, np.full(H - 5, np.nan)]   # stops trading after day 5
+            px, picks = one_pick(path)
+            out = st.apply_stop(picks, px.ffill(limit=5), px.ffill(), 0.20)  # exit_px forward-filled, as in panels
+            self.assertEqual(bool(out["stopped"].iloc[0]), fires)
+            self.assertAlmostEqual(out["stock_return"].iloc[0], last - 100)
+
+    def test_zeroed_moves_inside_the_window_are_listed(self):
+        px, picks = one_pick(np.full(H + 1, 100.0))
+        ca = pd.DataFrame(False, index=px.index, columns=px.columns)
+        self.assertEqual(st.zeroed_in_window(picks, px, ca), [])
+        ca.iloc[1] = True                                        # entry day's move is before the hold
+        self.assertEqual(st.zeroed_in_window(picks, px, ca), [])
+        ca.iloc[H + 1] = True                                    # the scheduled exit day's move is inside it
+        self.assertEqual(st.zeroed_in_window(picks, px, ca), [(picks["date"].iloc[0], "X")])
 
     def test_trigger_on_last_day_is_the_scheduled_exit(self):
         path = np.r_[np.full(H, 100.0), 50.0]
@@ -75,6 +96,12 @@ class Decision(unittest.TestCase):
         level, text = st.decide(t)
         self.assertEqual(level, rc.STOP_INSURANCE_LEVEL)
         self.assertIn("insurance", text)
+        self.assertIn("0.00 points", text)                       # the -30% stop's own cost is printed
+
+    def test_compares_unrounded_values(self):
+        t = [self.row(5.004, -70), self.row(4.5, -30), self.row(4.5, -30), self.row(4.5035, -30)]
+        self.assertEqual(st.decide(t)[0], rc.STOP_INSURANCE_LEVEL)   # costs 0.5005 > 0.5; rounded it would pass
+        self.assertIn("0.50 points", st.decide(t)[1])
 
 
 class Baseline(unittest.TestCase):
@@ -101,13 +128,13 @@ class Baseline(unittest.TestCase):
         px, exit_px, rows, breadth, nifty = self.args
         snaps, picks, _, _, mv = xt.monkey_section(*self.args)
         _, net, win, t, _ = pit.verdict_for(picks, snaps, mv)
-        table, _ = st.run_all(*self.args)
+        table, _, _ = st.run_all(*self.args)
         base = table[0]
         self.assertGreater(len(picks), 0)
         self.assertEqual(base["trades"], len(picks))
-        self.assertAlmostEqual(base["mean_net_alpha"], round(net, 2))
-        self.assertAlmostEqual(base["win_rate_pct"], round(win, 1))
-        self.assertAlmostEqual(base["t_nonoverlap"], round(t, 2))
+        self.assertAlmostEqual(base["mean_net_alpha"], net, places=9)
+        self.assertAlmostEqual(base["win_rate_pct"], win, places=9)
+        self.assertAlmostEqual(base["t_nonoverlap"], t, places=9)
         self.assertEqual(base["stopped_pct"], 0)
         mine = st.apply_stop(st.baseline_picks(*self.args), px, exit_px, None)
         np.testing.assert_allclose(mine["stock_return"].values, picks["stock_return"].values)

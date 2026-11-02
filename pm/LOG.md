@@ -1,5 +1,21 @@
 # PM run log (newest first)
 
+## 2026-10-31 to 11-02: cycle 2
+- Paused on 2026-10-31 by the account's weekly usage limit (reset 2026-11-01 20:00 UTC) and resumed on 2026-11-02; nothing was lost.
+- Health: the paper workflow ran every weekday; data as of 2026-10-30; in cash (breadth 32.4%).
+- **T1b (Trading #16): merged.** Check 1 PASS first round. Check 2: 78 tests, void check then live guards, rules.py untouched.
+- **T8 (Trading #17): merged.**
+  - Check 1: FAIL (an expectedFailure test that could never succeed) → PASS.
+  - Check 2: merged main, resolved the README conflict, all tests pass.
+  - Found: heat counts open profit (fix in T9); shares above Rs 4,800 can't be bought; sector cap 40.
+- **T3 (invest-os-research #4): merged, then run (extended run 41373813677).**
+  - This is **October 2026's** research idea; T7 is November's.
+  - The rule was locked in a0a4f83 and unchanged since.
+  - Check 1: PASS with caveats R1-R6. Check 2: 47 tests.
+  - **Result: ADOPT -30% stop.** Mean net alpha 5.37 vs 5.71 (cost 0.34 < 0.5); worst trade -42.5% vs -73.6%; 8.5% of trades stopped. The baseline reproduced pit_backtest exactly.
+  - The 18 picks with zeroed moves are mostly splits and bonuses.
+- New backlog: T9 (fidelity + heat-from-cost), T1c (small nse_exec follow-ups). T2 now uses -30% stops.
+
 ## 2026-10-30: cycle 1
 - Health: the paper workflow ran every weekday; data as of 2026-10-29; in cash (breadth 35.5%).
 - **T1 SELL tickets (Trading #12): merged.**

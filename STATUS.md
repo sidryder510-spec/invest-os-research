@@ -1,6 +1,6 @@
 # Invest OS: current status (read this first)
 
-This is the shared record between Claude Code and the owner's Claude chat. If anything here disagrees with older chat summaries, this file wins. Last updated 2026-10-30 (PM cycle 1).
+This is the shared record between Claude Code and the owner's Claude chat. If anything here disagrees with older chat summaries, this file wins. Last updated 2026-11-02 (PM cycle 2).
 
 ## Verdict
 **No real money.** The 12-1 momentum strategy **failed** its pre-registered point-in-time test. Forward paper trading is running to collect honest evidence.
@@ -13,8 +13,9 @@ This is the shared record between Claude Code and the owner's Claude chat. If an
 | Survivorship check | `research/reports/survivorship_check.md` | About 6 of the 19% per 60 days came from using today's list. |
 | Random-monkey + robustness + point-in-time backtest | `extended_tests.py`, `pit_backtest.py`, rules locked in config 1.4.0 | **Point-in-time: FAIL.** Net alpha +5.7% per 60d (needs > 2), win rate 54.0% (needs > 55), t-stat 1.69 (needs >= 2). Beats random picks (p < 0.001). Data amendments 1.4.1/1.4.2 (unadjusted splits/bonuses) are disclosed; no further data changes without an evidenced error. |
 | Forward paper trading | `paper_trade.py`, `.github/workflows/paper.yml`, `paper/SCORECARD.md` | Runs weekdays after NSE close. Picks on the first trading day of each week; sells reported the same evening. Buy/sell alerts arrive as GitHub issues, and on WhatsApp via CallMeBot once the owner adds the secrets WHATSAPP_PHONE and CALLMEBOT_APIKEY. Pass rule (config 1.3.0): > 2% net alpha and > 55% win rate over >= 26 closed weekly picks. |
+| Stop-loss test (pre-registered, config 1.5.0) | `stop_test.py`, `research/reports/stop_test.md` | **Live plan uses a -30% catastrophe stop** (GTT at entry × 0.70). On point-in-time data it cost 0.34 points of mean net alpha per 60 days and cut the worst trade from -73.6% to -42.5%. Close-data estimate; one-day crashes beyond 35% are not measured. |
 | UAT | `uat/`, `.github/workflows/uat.yml` | Passed 2026-10-26: 59 buy and 295 sell triggers replayed (2023-24), and the phone alert arrived. Functional test only. |
-| Order gate (sizing, sector/heat caps, two approvals, Kite) | private `Trading` repo, `nse_exec/` | BUY and SELL (60-day exit) tickets, TESTED (32 tests), never used live. Go-live costs and steps: `GO_LIVE.md` in Trading (about Rs 380-450/month; nothing bought). |
+| Order gate (sizing, sector/heat caps, two approvals, Kite) | private `Trading` repo, `nse_exec/` | BUY and SELL (60-day exit) tickets, void, phase-1 config for ~60 positions (`nse_exec_config.phase1.json`), TESTED (47 tests), never used live. Known gap: heat counts open profit (backlog T9). Go-live costs and steps: `GO_LIVE.md` in Trading (about Rs 380-450/month; nothing bought). |
 | Live app (engines A-E) | private `Trading` repo | **Never buys:** its buy functions are never called and the screener was never written. Its sells fire with no approval. Do not run live. |
 
 ## Decided, don't reopen without new evidence
@@ -27,4 +28,4 @@ This is the shared record between Claude Code and the owner's Claude chat. If an
 A weekly PM session (charter `pm/CHARTER.md`, backlog `pm/BACKLOG.md`, log `pm/LOG.md`) works through the backlog with double-checked sub-agents and reports through a `PM weekly <date>` GitHub issue. It stops at the finish line: paper PASS plus a live setup that has been dry-run tested.
 
 ## Next decision point
-When `paper/SCORECARD.md` reaches 26 closed weekly picks. Expect months: the strategy is in cash while breadth < 80% (31.4% on 2026-10-26).
+When `paper/SCORECARD.md` reaches 26 closed weekly picks. Expect months: the strategy is in cash while breadth < 80% (32.4% on 2026-10-30).

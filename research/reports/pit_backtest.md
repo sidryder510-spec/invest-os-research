@@ -4,9 +4,9 @@
 
 | | |
 | --- | --- |
-| Trading days / missing | 4129 / 0 |
-| Symbols ever seen (delisted included) | 4398 |
-| Daily moves beyond 35% neutralised as splits/bonuses/bad prints (amendment 1.4.2) | 2686 |
+| Trading days / missing | 4133 / 0 |
+| Symbols ever seen (delisted included) | 4421 |
+| Daily moves beyond 35% neutralised as splits/bonuses/bad prints (amendment 1.4.2) | 2687 |
 | Daily moves beyond 40% left after that | 0 |
 | Snapshots traded (breadth >= 80.0%) | 149 |
 | Trades | 745 |

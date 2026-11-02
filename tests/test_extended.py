@@ -118,6 +118,8 @@ class CorporateActions(unittest.TestCase):
             self.assertAlmostEqual(px["BONUS"].iloc[-1], px["BONUS"].iloc[0])
             self.assertAlmostEqual(px["CRASH"].iloc[-1] / px["CRASH"].iloc[0], 0.75)
             self.assertEqual(n_ca, 1)
+            ca = pit.panels(list(dates), with_ca=True)[-1]
+            self.assertEqual((int(ca.values.sum()), bool(ca["BONUS"].iloc[5])), (1, True))
         finally:
             os.chdir(cwd)
 

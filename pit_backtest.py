@@ -87,8 +87,10 @@ def download(dates, workers=4):
     return missing
 
 
-def panels(dates):
-    """Wide panels on the NIFTY calendar: px, exit_px, rows, member, breadth, value."""
+def panels(dates, with_ca=False):
+    """Wide panels on the NIFTY calendar: px, exit_px, rows, member, breadth, value.
+
+    with_ca=True also returns the mask of daily moves zeroed by amendment 1.4.2."""
     frames = []
     for d in dates:
         f = BHAV_DIR / (d.strftime("%Y%m%d") + ".csv")
@@ -114,7 +116,8 @@ def panels(dates):
     has = sma.notna() & px.notna() & member
     breadth = ((px > sma) & has).sum(axis=1) / has.sum(axis=1).replace(0, np.nan) * 100
     big_moves = int(((ret.abs() > 0.4) & traded).sum().sum())
-    return px, exit_px, rows, member, breadth, big_moves, int(traded.any().sum()), int(ca.sum().sum())
+    out = px, exit_px, rows, member, breadth, big_moves, int(traded.any().sum()), int(ca.sum().sum())
+    return out + (ca,) if with_ca else out
 
 
 def verdict_for(picks, snaps, monkey_verdict):

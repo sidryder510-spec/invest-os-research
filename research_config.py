@@ -6,7 +6,7 @@
 # Every study imports from here. Nothing is hardcoded in study files.
 #
 # Protocol Version : Invest OS Research Protocol v1.1
-# Config Version   : 1.4.2
+# Config Version   : 1.5.0
 #
 # HOW TO UPDATE:
 #   If the engine changes (bug fix), update ENGINE_SHA256 and ENGINE_VERSION.
@@ -20,7 +20,7 @@ from pathlib import Path
 # Version identifiers
 # ---------------------------------------------------------------------------
 
-CONFIG_VERSION   = "1.4.2"   # 1.4.2: any >35% day neutralised; 1.4.1: PIT corporate-action fix (after first run); 1.4.0: extended tests pre-registered; 1.3.0: paper-trading rule; 1.2.0: engine v3; 1.1.0: Study 05 cost model corrected (thresholds unchanged)
+CONFIG_VERSION   = "1.5.0"   # 1.5.0: stop-loss test pre-registered; 1.4.2: any >35% day neutralised; 1.4.1: PIT corporate-action fix (after first run); 1.4.0: extended tests pre-registered; 1.3.0: paper-trading rule; 1.2.0: engine v3; 1.1.0: Study 05 cost model corrected (thresholds unchanged)
 PROTOCOL_VERSION = "1.1"
 ENGINE_VERSION   = "3.0.0"   # v2 engine lost; v3 rebuilt with a pre-locked 12-1 momentum score
 
@@ -207,3 +207,61 @@ PIT_T_PASS         = 2.0
 # erased too. Owner-facing commitment: the next run's result is the verdict; no
 # further data amendments without a specific, evidenced error.
 PIT_MAX_DAILY_MOVE = 0.35
+
+# ---------------------------------------------------------------------------
+# Stop-loss test (pre-registered 2026-10-31, written BEFORE any stop result was
+# computed; backlog T3; this month's one new research idea). Adds rules only:
+# no existing pass/fail rule changes, and the 12-1 strategy's point-in-time
+# FAIL stands whatever this test shows. A stop that improves the numbers does
+# not make the strategy pass; that would need its own locked test.
+#
+# Why: the live order gate (nse_exec) puts a stop-loss GTT on every buy, but
+# the tested strategy has no stop. This test says which stop the live plan uses.
+#
+# Data and picks: exactly the point-in-time backtest of 1.4.0-1.4.2 (pit_backtest
+# panels, 12-1 + breadth, Top 5, weekly, entry at the next day's close, 60-day
+# hold). Variants: no stop (baseline) and stops at STOP_LEVELS below entry.
+#
+# Mechanics (daily closes): entry E = close on the entry day. On each later day
+# t of the hold, if close_t <= E * (1 - s), sell at the close of day t + 1; the
+# decision on day t uses only closes up to t. A trigger on the last day of the
+# hold changes nothing (that close is the scheduled exit). The money then sits
+# in cash at 0% until the 60 days end; the benchmark stays NIFTY over the full
+# 60 days, so a stopped trade's alpha = its stopped return - NIFTY's 60-day return.
+#
+# Bias of using closes: a real GTT triggers intraday on the last traded price
+# (bhavcopy has no reliable intraday path for this). (1) It fires more often:
+# intraday dips that recover by the close trigger a GTT but not this test, so
+# the test UNDERSTATES whipsaw stop-outs and its mean net alpha is biased IN
+# FAVOUR of the stop. (2) On a steady slide a GTT sells near the trigger, while
+# the test sells at the next day's close, usually lower, so the test's worst
+# losses are biased AGAINST the stop. Gaps through the trigger hurt both alike.
+# Also, amendment 1.4.2 zeroes any daily move beyond 35%, so a real one-day
+# crash of that size is invisible to the baseline and to every stop.
+#
+# Costs: Zerodha CNC charges via nse_exec.rules.charges plus slippage, exactly as
+# Study 05 (study_05_transaction_costs.add_net), charged on the actual exit value.
+#
+# Primary metric: mean net alpha per trade per 60 days (the S05/PIT metric).
+# Reported too: trades, median net alpha, net win rate, worst trade (lowest net
+# return), share of trades stopped out, non-overlapping t-stat of gross alpha
+# (as in pit_backtest).
+#
+# DECISION RULE: adopt the widest stop in STOP_LEVELS whose mean net alpha is
+# not below the baseline's by more than STOP_MAX_ALPHA_COST percentage points
+# per 60 days AND whose worst trade (lowest net return) is strictly better than
+# the baseline's. If none qualifies, the live plan uses STOP_INSURANCE_LEVEL
+# purely as disaster insurance, recorded as such (not as an edge).
+#
+# Why X = 0.5 points: it is the insurance premium we accept, about 9% of the
+# failed baseline's +5.7 points per 60 days (about 2 points a year at ~4 holding
+# periods), and the same size as Study 05's CONDITIONAL floor. The stop is there
+# to cap a disaster, so paying a little mean is acceptable; paying more would eat
+# a large part of an edge that already failed to clear 2 points net.
+# Why "widest": it stops out least, stays closest to the tested strategy, and
+# choosing the best-scoring of three stops would be picking on noise.
+# ---------------------------------------------------------------------------
+
+STOP_LEVELS          = (0.20, 0.25, 0.30)   # fraction below entry
+STOP_MAX_ALPHA_COST  = 0.5                  # X: max mean net alpha given up, points per 60 days
+STOP_INSURANCE_LEVEL = 0.30                 # fallback when no stop qualifies: the widest tested

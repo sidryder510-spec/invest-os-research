@@ -26,13 +26,16 @@ At the finish line the PM **stops** and reports. The first real trade is always 
 | PM (the session itself) | Assigns tasks, runs **check 2**, merges or sends back, updates records, reports |
 
 ## Each run (weekly)
-1. Read the charter, `STATUS.md`, `pm/BACKLOG.md`, `pm/LOG.md` and `paper/SCORECARD.md`. Check the paper workflow ran on the latest weekdays.
+1. Set `pm/CURRENT.md` to IN PROGRESS (see below). Read the charter, `STATUS.md`, `pm/BACKLOG.md`, `pm/LOG.md` and `paper/SCORECARD.md`. Check the paper workflow ran on the latest weekdays.
 2. Pick the top 1-3 unblocked backlog tasks and assign each to a sub-agent with its acceptance criteria.
 3. **Check 1:** a Reviewer agent reviews the result.
 4. **Check 2:** the PM itself re-runs `python -m unittest discover tests`, confirms every acceptance criterion with evidence (command output, file, run ID), and confirms no hard limit is touched.
 5. Both pass → open a PR and merge it (if GitHub API tools are unavailable, merge the `claude/pm-*` branch into `main` locally with `--no-ff` and push), then mirror into `Trading` per `CLAUDE.md`. Either fails → send it back with the specific findings (at most 2 retries per run), then leave it in the backlog with notes.
-6. Update `pm/BACKLOG.md`, `pm/LOG.md` (run date, tasks, both checks, PRs, blockers) and `STATUS.md`.
+6. Update `pm/BACKLOG.md`, `pm/LOG.md` (run date, tasks, both checks, PRs, blockers) and `STATUS.md`. Set `pm/CURRENT.md` back to IDLE once the report and the Trading mirror are done.
 7. Report: write `pm/outbox/<YYYY-MM-DD>.md` (first line `# PM weekly <date>`, or `# [ACTION] ...`) and push it to main. The `pm-report` workflow turns it into a GitHub issue (and a WhatsApp message once the secrets exist). Direct issue creation through GitHub tools is fine too, but do one or the other, not both. The digest is a 5-10 line plain-English summary (done, next, blockers needing the owner, paper scorecard line). For a milestone or a blocker that needs the owner, put `[ACTION]` at the start of the title.
+
+## Resume after interruptions (owner instruction, 2026-11-02)
+Usage limits can stop a cycle partway. At the start of a cycle the PM sets `pm/CURRENT.md` to IN PROGRESS and lists each task with its branch and stage, keeping it current, and sets it back to IDLE only when the cycle is fully done. A daily resume check reads it: if it says IN PROGRESS, the PM resumes from the recorded stages (re-reading branches and PRs, never redoing merged work); if it says IDLE, it does nothing. No owner input is needed.
 
 ## Never wait (owner instruction, 2026-10-30)
 The PM never pauses for owner input or approval. When something can only be done by the owner (secrets, purchases, the real-money yes), or a tool is denied, the PM skips that item, carries on with the next unblocked task, and lists the blocker under `[ACTION]` in the report. A blocked item never stops the cycle.

@@ -6,11 +6,11 @@ Rule (locked 2026-10-26): mean net alpha > 2.0% per 60 days and > 55.0% of trade
 
 | | |
 | --- | --- |
-| Data as of | 2026-11-13 |
-| Breadth now | 50.6% (buys only at >= 80.0%) |
-| Last weekly check | 2026-11-09, breadth 49.3% |
+| Data as of | 2026-11-16 |
+| Breadth now | 50.0% (buys only at >= 80.0%) |
+| Last weekly check | 2026-11-16, breadth 50.0% |
 | Last weekly picks | none, in cash |
-| Weeks run / weeks traded | 2 / 0 |
+| Weeks run / weeks traded | 3 / 0 |
 | Pending / open / closed trades | 0 / 0 / 0 |
 | Mean net alpha per 60 days | - |
 | Trades beating NIFTY after costs | - |
